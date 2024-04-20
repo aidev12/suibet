@@ -1,6 +1,5 @@
 module suibet::exchange {
     // === Imports ===
-
     use sui::object::{Self, UID};
     use sui::coin::{Self, Coin};
     use sui::balance::{Self, Supply, Balance};
@@ -9,7 +8,6 @@ module suibet::exchange {
     use sui::tx_context::{Self, TxContext};
 
     // === Errors ===
-
     /// For when supplied Coin is zero.
     const E_ZERO_BET: u64 = 0;
 
@@ -20,25 +18,18 @@ module suibet::exchange {
     /// For when someone tries to swap in an empty pool.
     const E_RESERVES_EMPTY: u64 = 2;
 
-    /// For when initial Bet Share amount is zero.
-    // const E_SHARE_FULL: u64 = 3;
-
     /// For when someone attempts to add more liquidity than u128 Math allows.
     const E_POOL_FULL: u64 = 4;
 
     // === Constants ===
-
     /// The integer scaling setting for fees calculation.
     const FEE_SCALING: u128 = 10000;
 
     /// The max value that can be held in one of the Balances of
     /// a Pool. U64 MAX / FEE_SCALING
-    const MAX_POOL_VALUE: u64 = {
-        18446744073709551615 / 10000
-    };
+    const MAX_POOL_VALUE: u64 = 18446744073709551615 / 10000;
 
     // === Structs ===
-
     /// The Pool token that will be used to mark the pool share
     /// of a liquidity provider. The first type parameter stands
     /// for the witness type of a pool. The seconds is for the
@@ -59,21 +50,20 @@ module suibet::exchange {
     }
 
     // === Init Function ===
-
     fun init(_: &mut TxContext) {}
 
     // === Public-Mutative Functions ===
-
     /// Create new `Pool` for token `T`. Each Pool holds a `Coin<T>`
     /// and a `Coin<SUI>`. Swaps are available in both directions.
     ///
     /// Share is calculated based on Uniswap's constant product formula:
     ///  liquidity = sqrt( X * Y )
+    // Create pool function with input validation and error handling
     public entry fun create_pool<X, Y>(
         fee_percent: u64,
         ctx: &mut TxContext
     ) {
-        assert!(fee_percent >= 0 && fee_percent < 10000, E_WRONG_FEE);
+        assert!(fee_percent < 10000, E_WRONG_FEE);
 
         let bet_share_supply = balance::create_supply(BetShare<X, Y> {});
         transfer::share_object(BetPool {
@@ -102,7 +92,7 @@ module suibet::exchange {
 
         assert!(coin_amount_x > 0 && coin_amount_y > 0, E_ZERO_BET);
         assert!(coin_amount_x < MAX_POOL_VALUE && coin_amount_y < MAX_POOL_VALUE, E_POOL_FULL);
-        assert!(fee_percent >= 0 && fee_percent < 10000, E_WRONG_FEE);
+        assert!(fee_percent < 10000, E_WRONG_FEE);
 
         // Initial share of BetShare is the sqrt(a) * sqrt(b)
         let share = math::sqrt(coin_amount_x) * math::sqrt(coin_amount_y);
@@ -120,17 +110,51 @@ module suibet::exchange {
         coin::from_balance(bet_share, ctx)
     }
 
+
+    // Swap functions with input validation and error handling
     /// Swaps token T for SUI.
     /// - `coin_x` - the amount of token T to swap.
     /// - `ctx` - the transaction context.
     /// - Returns the amount of SUI received.
     /// - The sender of the transaction will receive the SUI.
     public entry fun swap<X, Y>(pool: &mut BetPool<X, Y>, coin_x: Coin<X>, ctx: &mut TxContext) {
-        transfer::public_transfer(
-            swap_x_to_y_direct(pool, coin_x, ctx),
-            tx_context::sender(ctx)
-        );
+        let coin_y = swap_x_to_y_direct(pool, coin_x, ctx);
+        transfer::public_transfer(coin_y, tx_context::sender(ctx));
     }
+
+    // Add liquidity function with input validation and error handling
+    entry fun add_liquidity<X, Y>(
+        pool: &mut BetPool<X, Y>, coin_x: Coin<X>, coin_y: Coin<Y>, ctx: &mut TxContext
+    ) {
+        let bet_share = add_liquidity_direct(pool, coin_x, coin_y, ctx);
+        transfer::public_transfer(bet_share, tx_context::sender(ctx));
+    }
+
+    // Remove liquidity function with input validation and error handling
+    entry fun remove_liquidity_<X, Y>(
+        pool: &mut BetPool<X, Y>,
+        bet_share: Coin<BetShare<X, Y>>,
+        ctx: &mut TxContext
+    ) {
+        let (coin_x, coin_y) = remove_liquidity(pool, bet_share, ctx);
+        transfer::public_transfer(coin_x, tx_context::sender(ctx));
+        transfer::public_transfer(coin_y, tx_context::sender(ctx));
+    }
+
+    // Public-View Functions...
+
+    // Get pool reserves and supply
+    public fun get_pool_info<X, Y>(pool: &BetPool<X, Y>) -> (Balance<X>, Balance<Y>, Supply<BetShare<X, Y>>) {
+        (pool.reserve_x, pool.reserve_y, pool.bet_share_supply)
+    }
+
+    // Update pool fee
+    public fun update_pool_fee<X, Y>(pool: &mut BetPool<X, Y>, new_fee_percent: u64) {
+        assert!(new_fee_percent < 10000, E_WRONG_FEE);
+        pool.fee_percent = new_fee_percent;
+    }
+
+    
 
     /// Swaps SUI for token T.
     /// - `coin_y` - the amount of SUI to swap.
@@ -280,7 +304,6 @@ module suibet::exchange {
     }
 
     // === Public-View Functions ===
-
     /// Public getter for the price of SUI in token T.
     /// - How much SUI one will get if they send `to_sell` amount of T;
     public fun price_x_to_y<X, Y>(pool: &BetPool<X, Y>, delta_y: u64): u64
@@ -296,7 +319,6 @@ module suibet::exchange {
         let (reserve_x, reserve_y, _) = get_amounts(pool);
         get_input_price(delta_x, reserve_x, reserve_y, pool.fee_percent)
     }
-
 
     /// Get most used values in a handy way:
     /// - amount of CoinX
