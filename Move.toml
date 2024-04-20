@@ -1,10 +1,10 @@
 [package]
-name = "dacadedex"
+name = "suibet"
 version = "0.0.1"
 
 [dependencies]
 Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/devnet" }
-DeepBook = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/deepbook", rev = "framework/devnet" }
+
 
 [addresses]
 suibet = "0x0"

@@ -1,12 +1,11 @@
 ---
 compiled_package_info:
-  package_name: dacadedex
+  package_name: suibet
   address_alias_instantiation:
-    deepbook: 000000000000000000000000000000000000000000000000000000000000dee9
     std: "0000000000000000000000000000000000000000000000000000000000000001"
     sui: "0000000000000000000000000000000000000000000000000000000000000002"
     suibet: "0000000000000000000000000000000000000000000000000000000000000000"
-  source_digest: 596067B4EF07B37EA28289DB33B75A3DE8A68C92E1EC2AD6C15D3DCB6DE9EB6E
+  source_digest: 5239D0884089F4BDB982C0D27177ED745D290DBA37BEF3474D99D9987E2C5B3A
   build_flags:
     dev_mode: false
     test_mode: false
@@ -26,6 +25,5 @@ compiled_package_info:
       no_lint: false
       lint: false
 dependencies:
-  - DeepBook
   - MoveStdlib
   - Sui

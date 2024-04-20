@@ -2,19 +2,9 @@
 
 [move]
 version = 1
-manifest_digest = "2F8C5FBDDE70815DE25A9F615C7F12525670866AC367A338667C16FFD048702A"
-deps_digest = "3C4103934B1E040BB6B23F1D610B4EF9F2F1166A50A104EADCF77467C004C600"
+manifest_digest = "8D927B0F0A2E1613903EFADBB38CA2C24C4D58CD70BA5CD3F58AFF94DC96408F"
+deps_digest = "F8BBB0CCB2491CA29A3DF03D6F92277A4F3574266507ACD77214D37ECA3F3082"
 dependencies = [
-  { name = "DeepBook" },
-  { name = "Sui" },
-]
-
-[[move.package]]
-name = "DeepBook"
-source = { git = "https://github.com/MystenLabs/sui.git", rev = "framework/devnet", subdir = "crates/sui-framework/packages/deepbook" }
-
-dependencies = [
-  { name = "MoveStdlib" },
   { name = "Sui" },
 ]
 
