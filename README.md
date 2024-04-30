@@ -1,6 +1,3 @@
-Certainly! Below is a README file for the SUI Bet module, providing an overview of its functionalities, installation instructions, usage guidelines, and an example:
-
----
 
 # SUI Bet Module
 
