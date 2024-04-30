@@ -1,7 +1,34 @@
+Certainly! Below is a README file for the SUI Bet module, providing an overview of its functionalities, installation instructions, usage guidelines, and an example:
+
+---
 
 # SUI Bet Module
 
-The SUI Bet module is a decentralized betting platform implemented on the SUI blockchain. It allows users to create pools, add liquidity, swap between different types of bets, and remove liquidity. The module ensures secure and efficient betting operations while incentivizing liquidity providers through fee mechanisms.
+The SUI Bet module enables decentralized betting operations on the SUI blockchain platform. It allows users to create betting pools, add liquidity, place bets, withdraw funds, and manage player accounts. The module ensures secure and efficient betting transactions while incentivizing liquidity providers through fee mechanisms.
+
+Certainly! Let's break down the README file and provide detailed explanations for each section:
+
+---
+
+
+## Features
+
+### Betting Pool Creation
+
+Users can create new betting pools, specifying parameters such as the fee percentage for transactions within the pool. This feature enables customization and flexibility in managing different types of betting activities.
+
+### Liquidity Management
+
+Liquidity providers have the ability to add or remove liquidity from existing betting pools. By contributing funds to the pools, liquidity providers facilitate smooth betting operations and earn fees based on the trading activity within the pool.
+
+### Bet Placement
+
+Players can place bets within existing pools, leveraging the decentralized nature of the module to engage in various betting activities securely. Mechanisms are in place to ensure fairness and transparency in the betting process.
+
+### Account Management
+
+Administrators have the authority to manage player accounts, including flagging players for suspicious activities and monitoring account balances. This feature enhances the overall security and integrity of the betting platform.
+
 
 ## Installation
 
@@ -9,41 +36,38 @@ To use the SUI Bet module, follow these steps:
 
 1. Ensure you have the SUI blockchain platform set up and running.
 
-
-```rust
-use suibet::exchange;
-```
-
-To build:
+2. Build the module:
 
 ```bash
 sui move build
 ```
 
-To publish:
+3. Publish the module:
 
 ```bash
-sui client publish --gas-budget 100000000 --json
+sui client publish --gas-budget 100000000
 ```
 
 ## Usage
 
 ### How to Use
 
-This guide assumes you have a key, already have faucet coins in testnet or devnet, and two coins pre-deployed.
-
-You can interact with the SUI Bet module using the SUI explorer or with the SUI CLI.
-
-#### To create a new pool:
+1. Create a new pool:
 
 ```bash
 sui client call --package $PACKAGE_ID --module dex --function create_pool --type-args $BASE_COIN_TYPE $QUOTE_COIN_TYPE --args $FEE_PERCENTAGE --gas-budget 10000000000 --json
 ```
 
-#### To swap tokens:
+2. Place a bet:
 
 ```bash
-sui client call --package $PACKAGE_ID --module dex --function swap --type-args $BASE_COIN_TYPE $QUOTE_COIN_TYPE --args $POOL_ID $BASE_COIN_ID --gas-budget 10000000000 --json
+sui client call --package $PACKAGE_ID --module dex --function place_bet --type-args $BASE_COIN_TYPE $QUOTE_COIN_TYPE --args $HOUSE_ADDRESS $PLAYER_ADDRESS $BET_AMOUNT --gas-budget 10000000000 --json
+```
+
+3. Withdraw funds:
+
+```bash
+sui client call --package $PACKAGE_ID --module dex --function withdraw --type-args $BASE_COIN_TYPE $QUOTE_COIN_TYPE --args $ADMIN_ADDRESS $PLAYER_ADDRESS $AMOUNT --gas-budget 10000000000 --json
 ```
 
 ### Example
@@ -51,67 +75,21 @@ sui client call --package $PACKAGE_ID --module dex --function swap --type-args $
 Here's an example of how to use the SUI Bet module in your SUI smart contract:
 
 ```rust
-// Create a new pool
-exchange::create_pool_direct(...);
+use suibet::suibet;
 
-// Swap tokens
-exchange::swap(...);
+// Initialize the administrator
+suibet::init(...);
+
+// Create a new player
+suibet::create_player(...);
+
+// Deposit funds into the player's account
+suibet::deposit(...);
+
+// Place a bet
+suibet::place_bet(...);
+
+// Withdraw funds from the player's account
+suibet::withdraw(...);
 ```
 
-Certainly! Below is a README-style documentation for the SUI Bet module:
-
----
-
-```
-
-
-The SUI Bet module provides various functions for betting operations. These include creating pools, adding liquidity, swapping between bets, and removing liquidity.
-
-## Functions
-
-- **create_pool:** Creates a new betting pool with a specified fee percentage.
-- **create_pool_direct:** Creates a new pool with specified amounts of bets and fee percentage.
-- **swap:** Swaps one type of bet for another within a pool.
-- **swap_x_to_y_direct:** Swaps one type of bet for another directly.
-- **swap_y_to_x_direct:** Swaps one type of bet for another directly.
-- **add_liquidity:** Adds liquidity to the pool by providing bets of both types.
-- **add_liquidity_direct:** Adds liquidity to the pool directly with specified amounts of bets.
-- **remove_liquidity_:** Removes liquidity from the pool.
-- **price_x_to_y:** Calculates the price of one type of bet in terms of the other.
-- **price_y_to_x:** Calculates the price of one type of bet in terms of the other.
-- **get_amounts:** Retrieves the amounts of bets and the total supply of pool shares.
-- **get_input_price:** Calculates the output amount minus the fee for a given input amount and reserves.
-
-## Example
-
-```rust
-use suibet::exchange;
-
-// Create a pool with a fee percentage
-exchange::create_pool(100, &mut ctx);
-
-// Add liquidity to the pool
-let coin_x = Coin::new(100);
-let coin_y = Coin::new(200);
-exchange::add_liquidity(&mut pool, coin_x, coin_y, &mut ctx);
-
-// Swap one type of bet for another
-let bet_x = Coin::new(50);
-exchange::swap(&mut pool, bet_x, &mut ctx);
-
-// Remove liquidity from the pool
-let lsp = Coin::new(100);
-exchange::remove_liquidity_(&mut pool, lsp, &mut ctx);
-```
-
-## License
-
-This project is licensed under the [MIT License](LICENSE).
-
----
-
-Save the above content in a file named `README.md` in the root directory of your SUI Bet module project. This README provides users with clear instructions on how to install, use, and understand the functionalities of the SUI Bet module.
-
----
-
-This README provides an overview of the SUI Bet module, installation instructions, usage guidelines, an example, and licensing information.
