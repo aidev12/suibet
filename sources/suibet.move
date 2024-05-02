@@ -16,7 +16,7 @@ module suibet::suibet {
     const ENotOwner: u64 = 2;
 
     // Define a struct `Admin` representing an administrator, with fields for ID, owner address, and balance
-    struct Admin has key, store {
+    struct Admin has key {
         id: UID,
         owner_address: address,
         balance: Balance<SUI>
@@ -40,15 +40,7 @@ module suibet::suibet {
             balance: balance::zero()
         }, sender(ctx));
     }
-
-    // Define an entry function `admin_address` to retrieve the address of the administrator
-    public entry fun admin_address(admin: &Admin, ctx: &mut TxContext): address {
-        // Ensure that the caller is the owner of the administrator
-        assert!(admin.owner_address == sender(ctx), ENotOwner);
-        // Return the address of the administrator
-        admin.owner_address
-    }
-
+    
     // Define an entry function `player_address` to retrieve the address of a player
     public entry fun player_address(player: &Player): address {
         // Return the address of the player
