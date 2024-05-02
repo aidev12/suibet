@@ -22,7 +22,8 @@ module suibet::suibet {
 
     struct Protocol has key,store {
         id: UID,
-        balance:Balance<SUI>
+        balance:Balance<SUI>,
+        fee: u128
     }
 
     // Define a struct `Player` representing a player, with fields for ID, player address, flagged status, balance, and date
@@ -48,7 +49,8 @@ module suibet::suibet {
         // share the protocol object
         share_object(Protocol{
             id: object::new(ctx),
-            balance: balance::zero()
+            balance: balance::zero(),
+            fee: 5
         })
     }
     
@@ -81,33 +83,25 @@ module suibet::suibet {
         transfer(AccountCap{id: object::new(ctx), to: inner_}, sender(ctx));
     }
 
-    // // Define a function `deposit` to deposit funds into a player's account
-    // public fun deposit(
-    //     admin: &mut Admin,
-    //     player: &mut Account,
-    //     amount: &mut Coin<SUI>,
-    //     ctx: &mut TxContext
-    // ) {
-    //     // Ensure that the caller is the player
-    //     assert!(player.player_address == sender(ctx), ENotOwner);
-    //     // Ensure that the deposited amount is sufficient
-    //     assert!(coin::value(amount) >= FLOAT_SCALING*3, EInsufficientBalance);
+    // Define a function `deposit` to deposit funds into a player's account
+    public fun deposit(
+        self: &mut Protocol,
+        player: &mut Account,
+        cap: &AccountCap,
+        coin: Coin<SUI>,
+        ctx: &mut TxContext
+    ) {
+        // Ensure that the caller is the player
+        assert!(cap.to == object::id(player), ENotOwner);
+        // Split the deposited amount
+        let value = coin::value(&coin);
+        let deposit_value = value - (((value as u128) * self.fee / 100) as u64);
+        let admin_fee = value - deposit_value;
 
-    //     // Split the deposited amount
-    //     let amount_balance_mut = coin::balance_mut(amount);
-    //     let remaining_temp = balance::split(amount_balance_mut, FLOAT_SCALING);
-    //     let remaining_temp_2 = balance::split(amount_balance_mut, FLOAT_SCALING);
-    //     let remaining = balance::split(amount_balance_mut, FLOAT_SCALING);
-    //     let _amount = coin::from_balance(remaining, ctx);
-
-    //     // Transfer the amount to the administrator
-    //     public_transfer(_amount, admin.owner_address);
-
-    //     // Update player and administrator balances
-    //     balance::join(&mut player.balance, remaining_temp);
-    //     balance::join(&mut admin.balance, remaining_temp_2);
-
-    // }
+        let admin_coin = coin::split(&mut coin, admin_fee, ctx);
+        balance::join(&mut self.balance, coin::into_balance(admin_coin));
+        balance::join(&mut player.balance, coin::into_balance(coin));
+    }
 
     // // Define a function `withdraw` to withdraw funds from a player's account
     // public fun withdraw (
