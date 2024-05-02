@@ -1,29 +1,13 @@
 // Allow the lint warning related to self-transfer within this module
 #[allow(lint(self_transfer))]
 module suibet::suibet {
-
-    // Import the `SUI` struct from the `sui::sui` module
     use sui::sui::SUI;
-
-    // Import the `TxContext` struct and its associated methods from the `sui::tx_context` module,
-    // aliasing it as `TxContextSelf` to avoid naming conflicts
-    use sui::tx_context::{TxContext, Self as TxContextSelf};
-
-    // Import the `Coin` struct and its associated methods from the `sui::coin` module,
-    // aliasing it as `CoinSelf` to avoid naming conflicts
+    use sui::tx_context::{Self, TxContext, sender};
     use sui::coin::{Coin, Self as CoinSelf};
-
-    // Import the `Balance` struct and its associated methods from the `sui::balance` module,
-    // aliasing it as `BalanceSelf` to avoid naming conflicts
     use sui::balance::{Self as BalanceSelf, Balance};
-
-    // Import the `transfer`, `share_object`, and `public_transfer` functions from the `sui::transfer` module
     use sui::transfer::{transfer, share_object, public_transfer};
+    use sui::object::{Self, UID};
 
-    // Import the `UID` struct from the `sui::object` module, aliasing it as `ObjectSelf` to avoid naming conflicts
-    use sui::object::{Self as ObjectSelf, UID};
-
-    // Define a constant `FLOAT_SCALING` with a value of 1_000_000_000
     const FLOAT_SCALING: u64 = 1_000_000_000;
 
     // Define error constants for insufficient balance, denied access, and not being an owner
@@ -51,16 +35,16 @@ module suibet::suibet {
     fun init(ctx: &mut TxContext) {
         // Transfer ownership of an `Admin` object with zero balance to the sender of the transaction
         transfer(Admin{
-            id: ObjectSelf::new(ctx),
-            owner_address: TxContextSelf::sender(ctx),
+            id: object::new(ctx),
+            owner_address: sender(ctx),
             balance: BalanceSelf::zero()
-        }, TxContextSelf::sender(ctx));
+        }, sender(ctx));
     }
 
     // Define an entry function `admin_address` to retrieve the address of the administrator
     public entry fun admin_address(admin: &Admin, ctx: &mut TxContext): address {
         // Ensure that the caller is the owner of the administrator
-        assert!(admin.owner_address == TxContextSelf::sender(ctx), ENotOwner);
+        assert!(admin.owner_address == sender(ctx), ENotOwner);
         // Return the address of the administrator
         admin.owner_address
     }
@@ -82,8 +66,8 @@ module suibet::suibet {
         // Share a new `Player` object with the sender of the transaction
         share_object(
             Player{
-                id: ObjectSelf::new(ctx),
-                player_address: TxContextSelf::sender(ctx),
+                id: object::new(ctx),
+                player_address: sender(ctx),
                 flagged: false,
                 balance: BalanceSelf::zero(),
                 date: date
@@ -99,7 +83,7 @@ module suibet::suibet {
         ctx: &mut TxContext
     ) {
         // Ensure that the caller is the player
-        assert!(player.player_address == TxContextSelf::sender(ctx), ENotOwner);
+        assert!(player.player_address == sender(ctx), ENotOwner);
         // Ensure that the deposited amount is sufficient
         assert!(CoinSelf::value(amount) >= FLOAT_SCALING*3, EInsufficientBalance);
 
@@ -129,7 +113,7 @@ module suibet::suibet {
         // Ensure that the withdrawal amount does not exceed the player's balance
         assert!(BalanceSelf::value(&amount) <= BalanceSelf::value(&player.balance), EInsufficientBalance);
         // Ensure that the caller is the player
-        assert!(player.player_address == TxContextSelf::sender(ctx), ENotOwner);
+        assert!(player.player_address == sender(ctx), ENotOwner);
         // Ensure that the player is not the administrator
         assert!(player.player_address != admin.owner_address, EDeniedAccess);
 
@@ -138,7 +122,7 @@ module suibet::suibet {
         let withdraw_coin = CoinSelf::from_balance(amount, ctx);
 
         // Transfer the withdrawal amount to the sender's address
-        public_transfer(withdraw_coin, TxContextSelf::sender(ctx));
+        public_transfer(withdraw_coin, sender(ctx));
 
         // Update player and administrator balances
         let remaining = BalanceSelf::split(&mut player.balance, amount_value);
@@ -156,7 +140,7 @@ module suibet::suibet {
         ctx: &mut TxContext
     ) {
         // Ensure that the caller is the player
-        assert!(player.player_address == TxContextSelf::sender(ctx), ENotOwner);
+        assert!(player.player_address == sender(ctx), ENotOwner);
         // Ensure that the bet amount is sufficient
         assert!(CoinSelf::value(amount) >= FLOAT_SCALING*2, EInsufficientBalance);
 
@@ -180,7 +164,7 @@ module suibet::suibet {
         ctx: &mut TxContext
     ) {
         // Ensure that the caller is the administrator (house)
-        assert!(house.owner_address == TxContextSelf::sender(ctx), EDeniedAccess);
+        assert!(house.owner_address == sender(ctx), EDeniedAccess);
         // Toggle the flagged status of the player
         player.flagged = !player.flagged;
     }
