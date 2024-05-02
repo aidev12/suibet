@@ -103,34 +103,19 @@ module suibet::suibet {
         balance::join(&mut player.balance, coin::into_balance(coin));
     }
 
-    // // Define a function `withdraw` to withdraw funds from a player's account
-    // public fun withdraw (
-    //     admin: &mut Admin,
-    //     player: &mut Account,
-    //     amount: Balance<SUI>,
-    //     ctx: &mut TxContext
-    // ) {
-    //     // Ensure that the withdrawal amount does not exceed the player's balance
-    //     assert!(balance::value(&amount) <= balance::value(&player.balance), EInsufficientBalance);
-    //     // Ensure that the caller is the player
-    //     assert!(player.player_address == sender(ctx), ENotOwner);
-    //     // Ensure that the player is not the administrator
-    //     assert!(player.player_address != admin.owner_address, EDeniedAccess);
-
-    //     // Calculate the withdrawal amount
-    //     let amount_value = balance::value(&amount);
-    //     let withdraw_coin = coin::from_balance(amount, ctx);
-
-    //     // Transfer the withdrawal amount to the sender's address
-    //     public_transfer(withdraw_coin, sender(ctx));
-
-    //     // Update player and administrator balances
-    //     let remaining = balance::split(&mut player.balance, amount_value);
-    //     let remaining_admin = balance::split(&mut admin.balance, amount_value);
-    //     balance::join(&mut player.balance, remaining);
-    //     balance::join(&mut admin.balance, remaining_admin);
-
-    // }
+    // Define a function `withdraw` to withdraw funds from a player's account
+    public fun withdraw (
+        cap: &AccountCap,
+        player: &mut Account,
+        amount: u64,
+        ctx: &mut TxContext
+    ) : Coin<SUI> {
+        // Ensure that the withdrawal amount does not exceed the player's balance
+        assert!(cap.to == object::id(player), ENotOwner);
+        // Calculate the withdrawal amount
+        let coin_ = coin::take(&mut player.balance, amount, ctx);
+        coin_
+    }
 
     // // Define a function `place_bet` to place a bet
     // public fun place_bet(
